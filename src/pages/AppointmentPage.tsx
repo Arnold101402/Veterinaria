@@ -1,13 +1,46 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AppointmentCard } from "../components/AppointmentCard";
 import { StatCard } from "../components/StatCard";
-import { citasIniciales } from "../data/citas";
-import type { EstadoCita } from "../types";
+//import { citasIniciales } from "../data/citas";
+import {
+  actualizarEstado, obtenerCitas,
+} from "../services/citasApi";
+
+import type { Cita, EstadoCita } from "../types";
 
 type Filtro = "todas" | EstadoCita;
 
 export function AppointmentsPage() {
-  const [citas, setCitas] = useState(citasIniciales);
+  const [citas, setCitas] = useState<Cita[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    async function cargarCitas() {
+      try {
+        setCargando(true);
+        setCitas(await obtenerCitas());
+      } catch (error) {
+        setError(error instanceof Error ? error.message : "Ocurrió un error.");
+      } finally {
+        setCargando(false);
+      }
+    }
+
+    void cargarCitas();
+  }, []);
+
+  async function confirmarCita(id: number) {
+    try {
+      const actualizada = await actualizarEstado(id, "confirmada");
+      setCitas((actuales) =>
+        actuales.map((cita) => (cita.id === id ? actualizada : cita)),
+      );
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Error al confirmar.");
+    }
+  }
+
   const [filtro, setFiltro] = useState<Filtro>("todas");
   const [mensaje, setMensaje] = useState("");
 
@@ -17,15 +50,7 @@ export function AppointmentsPage() {
   const pendientes = citas.filter((c) => c.estado === "solicitada").length;
   const confirmadas = citas.filter((c) => c.estado === "confirmada").length;
 
-  function confirmarCita(id: number) {
-    setCitas(
-      citas.map((cita) =>
-        cita.id === id ? { ...cita, estado: "confirmada" } : cita,
-      ),
-    );
-    setMensaje("La cita fue confirmada correctamente.");
-  }
-
+ 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
       <section className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
