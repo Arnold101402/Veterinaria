@@ -15,7 +15,7 @@ export const pool = mysql.createPool({
 
 export async function probarConexion(): Promise<void> {
   const connection = await pool.getConnection();
-
+  
   try {
     await connection.ping();
     console.log("Conexión con MySQL establecida");

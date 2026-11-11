@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { AppointmentCard } from "../components/AppointmentCard";
 import { StatCard } from "../components/StatCard";
-//import { citasIniciales } from "../data/citas";
+import { NuevaCitaModal } from "../components/NuevaCitaModal";
 import {
   actualizarEstado, obtenerCitas,
 } from "../services/citasApi";
@@ -14,6 +14,9 @@ export function AppointmentsPage() {
   const [citas, setCitas] = useState<Cita[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [filtro, setFiltro] = useState<Filtro>("todas");
+  const [mensaje, setMensaje] = useState("");
 
   useEffect(() => {
     async function cargarCitas() {
@@ -36,13 +39,16 @@ export function AppointmentsPage() {
       setCitas((actuales) =>
         actuales.map((cita) => (cita.id === id ? actualizada : cita)),
       );
+      setMensaje("La cita fue confirmada correctamente.");
     } catch (error) {
       setError(error instanceof Error ? error.message : "Error al confirmar.");
     }
   }
 
-  const [filtro, setFiltro] = useState<Filtro>("todas");
-  const [mensaje, setMensaje] = useState("");
+  function handleCitaCreada(nuevaCita: Cita) {
+    setCitas((actuales) => [nuevaCita, ...actuales]);
+    setMensaje("Cita registrada correctamente.");
+  }
 
   const citasFiltradas =
     filtro === "todas" ? citas : citas.filter((cita) => cita.estado === filtro);
@@ -50,7 +56,6 @@ export function AppointmentsPage() {
   const pendientes = citas.filter((c) => c.estado === "solicitada").length;
   const confirmadas = citas.filter((c) => c.estado === "confirmada").length;
 
- 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
       <section className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -60,7 +65,10 @@ export function AppointmentsPage() {
             Consulta y administra las citas del día.
           </p>
         </div>
-        <button className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white hover:bg-teal-800">
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="rounded-xl bg-teal-700 px-5 py-3 font-semibold text-white hover:bg-teal-800 transition-colors cursor-pointer"
+        >
           + Nueva cita
         </button>
       </section>
@@ -103,6 +111,12 @@ export function AppointmentsPage() {
         </select>
       </section>
 
+      {error && (
+        <p className="mt-6 rounded-xl bg-red-100 px-4 py-3 text-red-800">
+          {error}
+        </p>
+      )}
+
       {mensaje && (
         <p
           aria-live="polite"
@@ -113,7 +127,11 @@ export function AppointmentsPage() {
       )}
 
       <section className="mt-6 grid gap-4">
-        {citasFiltradas.length > 0 ? (
+        {cargando ? (
+          <p className="rounded-2xl bg-white p-8 text-center text-slate-500">
+            Cargando citas...
+          </p>
+        ) : citasFiltradas.length > 0 ? (
           citasFiltradas.map((cita) => (
             <AppointmentCard
               key={cita.id}
@@ -127,6 +145,12 @@ export function AppointmentsPage() {
           </p>
         )}
       </section>
+
+      <NuevaCitaModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onCitaCreada={handleCitaCreada}
+      />
     </main>
   );
 }

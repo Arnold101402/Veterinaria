@@ -5,6 +5,7 @@ export type Cita = {
   mascota: string;
   cliente: string;
   servicio: string;
+  fecha: string;
   hora: string;
   estado: EstadoCita;
 };

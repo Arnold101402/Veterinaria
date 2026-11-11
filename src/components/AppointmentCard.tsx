@@ -28,4 +28,3 @@ export function AppointmentCard({ cita, onConfirmar }: Props) {
     </article>
   );
 }
-

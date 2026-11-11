@@ -1,22 +1,17 @@
-//Controlador para validar los datos, aplicar las reglas de
-//negocio y llamar al repositorio y consultas http
-
+//Controlador para validar los datos, aplicar reglas del negocio y llamar al repositorio y consultas http
 import type { Request, Response } from "express";
-
 import {
   actualizarCita, actualizarEstadoCita, buscarCitaPorId,
   crearCita, eliminarCita, horarioOcupado, listarCitas,
 } from "../repositories/cita.repository.js";
-
 import {
   estadosPermitidos,
   type ActualizarCita, type EstadoCita, type NuevaCita,
 } from "../types/cita.js";
-
 import { AppError } from "../middlewares/error.middleware.js";
 
 function obtenerId(req: Request): number {
-  const id = Number(req.params.id);
+    const id = Number(req.params.id);
   if (!Number.isInteger(id) || id <= 0) {
     throw new AppError(400, "El identificador no es válido.");
   }
